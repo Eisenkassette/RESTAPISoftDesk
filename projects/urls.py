@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     # Project URLs
     path('projects/', views.ProjectListCreate.as_view(), name='project-list-create'),
-    path('projects/<str:title>/', views.ProjectRetrieveUpdateDestroy.as_view(), name='project-retrieve-update-delete'),
+    path('projects/<int:id>/', views.ProjectRetrieveUpdateDestroy.as_view(), name='project-retrieve-update-delete'),
     
     # Contributor URLs
     path('projects/<str:project_id>/contributors/', views.ContributorListCreate.as_view(), name='contributor-list-create'),
