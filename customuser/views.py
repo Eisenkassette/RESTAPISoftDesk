@@ -4,6 +4,11 @@ from .permissions import IsAuthorOrReadOnly, IsAuthenticatedOrCreateOnly
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAdminUser
+from rest_framework.decorators import api_view, permission_classes
+from django.shortcuts import get_object_or_404
+import string
+import random
 
 
 class CustomUserListCreate(ListCreateAPIView):
@@ -39,3 +44,18 @@ class CustomUserRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
         self.perform_destroy(instance)
         return Response({'username': username}, status=status.HTTP_200_OK)
 
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def anonymize_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    new_username = f"Anon_{random_string}"
+    
+    user.username = new_username
+    user.birth_date = '1000-01-01'
+    user.is_active = False
+    user.save()
+    
+    return Response({"message": f"User {user_id} has been anonymized."}, status=status.HTTP_200_OK)
