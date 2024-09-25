@@ -3,21 +3,6 @@ from django.shortcuts import get_object_or_404
 from .models import Contributor
 
 
-
-class IsProjectAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Check if the user is authenticated.
-    For specfic objects, allow GET but check if the user is the author for all other methods.
-    """
-    def has_permission(self, request, view):
-        return request.user.is_authenticated
-
-    def has_object_permission(self, request, view, obj):
-        if request.method == 'GET':
-            return True
-        return obj.author == request.user
-
-
 class IsContributor(permissions.BasePermission):
     """
     Custom permission to only allow contributors of a project
