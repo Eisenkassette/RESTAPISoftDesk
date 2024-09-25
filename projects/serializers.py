@@ -11,10 +11,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             'title': {'required': True},
             'type': {'required': True},
         }
-    
-    def create(self, validated_data):
-        author = self.context['request'].user
-        return Project.objects.create(author=author, **validated_data)
 
 
 class ContributorSerializer(serializers.ModelSerializer):
