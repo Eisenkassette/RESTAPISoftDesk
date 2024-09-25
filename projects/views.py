@@ -1,6 +1,6 @@
 from .models import Project, Contributor, Issues, Comment
 from .serializers import ProjectSerializer, ContributorSerializer, IssuesSerializer, CommentSerializer
-from .permissions import IsProjectAuthorOrReadOnly, IsContributor, IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly, IsAuthorOrContributorReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -12,29 +12,33 @@ from rest_framework import status
 class ProjectListCreate(ListCreateAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         title = response.data['title']
         return Response({'title': title}, status=status.HTTP_201_CREATED)
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class ProjectRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsProjectAuthorOrReadOnly]
-    lookup_field = 'title'
+    permission_classes = [IsAuthorOrReadOnly]
+    http_method_names = ['get', 'patch', 'delete']
+    lookup_field = 'id'
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        title = instance.title
+        project_id = instance.id
         self.perform_destroy(instance)
-        return Response({'title': title}, status=status.HTTP_200_OK)
+        return Response({'project_id': project_id}, status=status.HTTP_200_OK)
 
 
 class ContributorListCreate(ListCreateAPIView):
     serializer_class = ContributorSerializer
-    permission_classes = [IsProjectAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def get_queryset(self):
         project_id = self.kwargs.get('project_id')
@@ -49,7 +53,7 @@ class ContributorListCreate(ListCreateAPIView):
 
 class ContributorDestroy(DestroyAPIView):
     serializer_class = ContributorSerializer
-    permission_classes = [IsProjectAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def get_object(self):
         project_id = self.kwargs.get('project_id')
@@ -65,10 +69,9 @@ class ContributorDestroy(DestroyAPIView):
         return Response({'username': user}, status=status.HTTP_200_OK)
 
 
-
 class IssueListCreate(ListCreateAPIView):
     serializer_class = IssuesSerializer
-    permission_classes = [IsAuthenticated, IsContributor]
+    permission_classes = [IsAuthorOrContributorReadOnly]
 
     def get_queryset(self):
         project_id = self.kwargs.get('project_id')
@@ -82,7 +85,8 @@ class IssueListCreate(ListCreateAPIView):
 class IssueRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     queryset = Issues.objects.all()
     serializer_class = IssuesSerializer
-    permission_classes = [IsAuthenticated, IsContributor, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrContributorReadOnly]
+    http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'id'
 
     def destroy(self, request, *args, **kwargs):
@@ -94,7 +98,7 @@ class IssueRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
 
 class CommentList(ListCreateAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated, IsContributor]
+    permission_classes = [IsAuthorOrContributorReadOnly]
 
     def get_queryset(self):
         project_id = self.kwargs.get('project_id')
@@ -110,7 +114,8 @@ class CommentList(ListCreateAPIView):
 
 class CommentRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated, IsContributor, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrContributorReadOnly]
+    http_method_names = ['get', 'patch', 'delete']
 
     def get_queryset(self):
         project_id = self.kwargs.get('project_id')
