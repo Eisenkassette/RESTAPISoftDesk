@@ -13,11 +13,6 @@ class ProjectListCreate(ListCreateAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthorOrReadOnly]
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        title = response.data['title']
-        return Response({'title': title}, status=status.HTTP_201_CREATED)
     
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
