@@ -24,15 +24,19 @@ A Django REST API for project management.
 4. Clone the repository:
    ```
    git clone https://github.com/Eisenkassette/RESTAPISoftDesk.git
+   ```
+   
+5. Enter the repository:
+   ```
    cd RESTAPISoftDesk
    ```
 
-5. Install dependencies:
+6. Install dependencies:
    ```
    pip install -r requirements.txt
    ```
 
-6. Start the Django development server:
+7. Start the Django development server:
    ```
    python manage.py runserver
    ```
